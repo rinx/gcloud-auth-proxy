@@ -19,6 +19,8 @@ TBW
 |------------------|--------|------------------|
 | `/idtoken`       | POST   | returns ID Token |
 | `/idtoken/proxy` |        | forwards HTTP request and appends ID Token to its header |
+| `/healthz`       |        | health check endpoint |
+| `/readyz`        |        | readiness check endpoint |
 
 ## Similar Projects
 

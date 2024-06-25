@@ -1,0 +1,39 @@
+name: "Build binaries"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      attestations: write
+    strategy:
+      matrix:
+        os:
+          - linux
+          - darwin
+        arch:
+          - arm64
+          - amd64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          go build -o gcloud-auth-proxy ./cmd/proxy
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: gcloud-auth-proxy_${{ matrix.os }}_${{ matrix.arch }}
+          path: gcloud-auth-proxy
