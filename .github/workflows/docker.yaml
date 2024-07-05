@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "*.*.*"
+      - "v*.*.*"
+      - "*.*.*-*"
+      - "v*.*.*-*"
 
 jobs:
   build:
@@ -16,10 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Extrace short sha
-        id: short-sha
-        run: |
-          echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -38,6 +39,12 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/rinx/gcloud-auth-proxy
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
       - name: Build and Push
         id: build-push
         uses: docker/build-push-action@v5
