@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"net/http/httputil"
 	"sync"
 	"time"
 
-	"github.com/rinx/gcloud-auth-proxy/pkg/service/health"
+	"github.com/elazarl/goproxy"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/idtoken"
+
+	"github.com/rinx/gcloud-auth-proxy/pkg/service/health"
 )
 
 type Response struct {
@@ -35,7 +36,7 @@ type Server interface {
 
 type server struct {
 	mux    *http.ServeMux
-	proxy  *httputil.ReverseProxy
+	proxy  *goproxy.ProxyHttpServer
 	cancel context.CancelFunc
 
 	// ctx for TokenSource
@@ -53,7 +54,7 @@ type server struct {
 func New(opts ...Option) (Server, error) {
 	s := &server{
 		mux:   &http.ServeMux{},
-		proxy: &httputil.ReverseProxy{},
+		proxy: goproxy.NewProxyHttpServer(),
 		tss:   map[string]tokenSource{},
 	}
 
@@ -62,6 +63,8 @@ func New(opts ...Option) (Server, error) {
 			return nil, err
 		}
 	}
+
+	s.proxy.OnRequest().DoFunc(s.appendIDToken)
 
 	return s, nil
 }
@@ -120,22 +123,32 @@ func (s *server) idTokenHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 }
 
-func (s *server) idTokenProxy(w http.ResponseWriter, r *http.Request) {
+func (s *server) appendIDToken(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
 	ts, err := s.newTokenSource(s.defaultAudience)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		slog.Error("error on creating token-source", "error", err)
+		return nil, goproxy.NewResponse(
+			r,
+			goproxy.ContentTypeText,
+			http.StatusInternalServerError,
+			"cannot create token source",
+		)
 	}
 
 	tok, err := ts.Token()
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		slog.Error("error on fetch token", "error", err)
+		return nil, goproxy.NewResponse(
+			r,
+			goproxy.ContentTypeText,
+			http.StatusInternalServerError,
+			"cannot fetch token",
+		)
 	}
 
 	tok.SetAuthHeader(r)
 
-	s.proxy.ServeHTTP(w, r)
+	return r, nil
 }
 
 func (s *server) newTokenSource(aud string) (oauth2.TokenSource, error) {
@@ -189,7 +202,7 @@ func (s *server) Start(ctx context.Context) <-chan error {
 	s.ctx = ctx
 
 	s.mux.HandleFunc("/idtoken", s.idTokenHandler)
-	s.mux.HandleFunc("/idtoken/proxy", s.idTokenProxy)
+	s.mux.HandleFunc("/idtoken/proxy", s.proxy.ServeHTTP)
 
 	s.started = true
 
