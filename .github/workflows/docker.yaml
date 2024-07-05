@@ -33,14 +33,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Append metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/rinx/gcloud-auth-proxy
       - name: Build and Push
         id: build-push
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: |
-            ghcr.io/rinx/gcloud-auth-proxy:latest
-            ghcr.io/rinx/gcloud-auth-proxy:${{ steps.short-sha.outputs.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
       - name: Attest
         uses: actions/attest-build-provenance@v1
