@@ -1,6 +1,6 @@
 # Google Cloud Auth Proxy
 
-[![latest tag](https://ghcr-badge.egpl.dev/rinx/gcloud-auth-proxy/latest_tag?trim=major&label=latest)](https://github.com/users/rinx/packages/container/package/gcloud-auth-proxy)
+[![latest tag](https://ghcr-badge.egpl.dev/rinx/gcloud-auth-proxy/latest_tag?color=%2344cc11&ignore=sha256-*&trim=major&label=latest)](https://github.com/users/rinx/packages/container/package/gcloud-auth-proxy)
 [![image size](https://ghcr-badge.egpl.dev/rinx/gcloud-auth-proxy/size)](https://github.com/users/rinx/packages/container/package/gcloud-auth-proxy)
 
 This is a software that provides [Google-signed authentication tokens][google-token] in several ways.
