@@ -24,7 +24,7 @@ type Response struct {
 
 type tokenSource struct {
 	tokenSource oauth2.TokenSource
-	expire      time.Time
+	expiration  time.Time
 }
 
 type Server interface {
@@ -164,12 +164,14 @@ func (s *server) newTokenSource(aud string) (oauth2.TokenSource, error) {
 		return nil, err
 	}
 
+	exp := time.Now().Add(s.tsCacheDuration)
+
 	s.tss[aud] = tokenSource{
 		tokenSource: nts,
-		expire:      time.Now().Add(s.tsCacheDuration),
+		expiration:  exp,
 	}
 
-	slog.Info("add tokensource cache", "audience", aud)
+	slog.Info("add tokensource cache", "audience", aud, "expiration", exp.Format(time.RFC3339Nano))
 
 	return nts, nil
 }
@@ -222,10 +224,10 @@ func (s *server) refreshCache() error {
 	defer s.tssMu.Unlock()
 
 	for aud, ts := range s.tss {
-		if ts.expire.After(time.Now()) {
+		if time.Now().After(ts.expiration) {
 			delete(s.tss, aud)
 
-			slog.Info("delete tokensource cache", "audience", aud)
+			slog.Info("delete tokensource cache", "audience", aud, "expiration", ts.expiration)
 		}
 	}
 
