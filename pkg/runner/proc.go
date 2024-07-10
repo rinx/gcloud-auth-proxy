@@ -44,6 +44,7 @@ func (p *proc) Start(ctx context.Context) (_ <-chan error, err error) {
 	p.idtoken, err = idtoken.New(
 		idtoken.WithDefaultAudience(p.DefaultAudience),
 		idtoken.WithTokenSourceCacheDuration(p.TokenSourceCacheDuration),
+		idtoken.WithDebugGoproxy(p.DebugGoproxy),
 	)
 	if err != nil {
 		return nil, err

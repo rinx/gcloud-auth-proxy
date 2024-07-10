@@ -14,6 +14,7 @@ type Config struct {
 	ServerPort               string
 	DefaultAudience          string
 	TokenSourceCacheDuration string
+	DebugGoproxy             bool
 }
 
 // Runner represents main routine interface

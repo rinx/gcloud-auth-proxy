@@ -34,3 +34,15 @@ func (o tsCacheDurationOption) Apply(s *server) error {
 func WithTokenSourceCacheDuration(dur string) tsCacheDurationOption {
 	return tsCacheDurationOption(dur)
 }
+
+type debugGoproxyOption bool
+
+func (o debugGoproxyOption) Apply(s *server) error {
+	s.proxy.Verbose = bool(o)
+
+	return nil
+}
+
+func WithDebugGoproxy(b bool) debugGoproxyOption {
+	return debugGoproxyOption(b)
+}

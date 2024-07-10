@@ -16,6 +16,7 @@ var (
 	serverPort               string
 	defaultAudience          string
 	tokenSourceCacheDuration string
+	debugGoproxy             bool
 )
 
 func main() {
@@ -36,6 +37,7 @@ func main() {
 	cmd.Flags().StringVar(&serverHost, "host", "0.0.0.0", "server host")
 	cmd.Flags().StringVar(&serverPort, "port", "8100", "server port")
 	cmd.Flags().StringVar(&tokenSourceCacheDuration, "token-source-cache-duration", "30m", "token source cache duration")
+	cmd.Flags().BoolVar(&debugGoproxy, "debug-goproxy", false, "verbose logging about elazarl/goproxy")
 
 	if err := cmd.Execute(); err != nil {
 		slog.Error("error occurred", "error", err)
@@ -49,6 +51,7 @@ func run(cmd *cobra.Command, args []string) error {
 		ServerPort:               serverPort,
 		DefaultAudience:          defaultAudience,
 		TokenSourceCacheDuration: tokenSourceCacheDuration,
+		DebugGoproxy:             debugGoproxy,
 	}
 
 	r, err := runner.New(cfg)
