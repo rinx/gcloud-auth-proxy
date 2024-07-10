@@ -227,7 +227,7 @@ func (s *server) refreshCache() error {
 		if time.Now().After(ts.expiration) {
 			delete(s.tss, aud)
 
-			slog.Info("delete tokensource cache", "audience", aud, "expiration", ts.expiration)
+			slog.Info("delete tokensource cache", "audience", aud, "expiration", ts.expiration.Format(time.RFC3339Nano))
 		}
 	}
 
